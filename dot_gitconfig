@@ -1,0 +1,5 @@
+[user]
+	email = matchaboar@pm.me
+	name = matchaboar
+[safe]
+	directory = %(prefix)///wsl.localhost/Ubuntu-24.04/home/boarcoder/github/srajob
