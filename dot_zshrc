@@ -1,0 +1,260 @@
+# Start configuration added by Zim Framework install {{{
+#
+# User configuration sourced by interactive shells
+#
+
+# -----------------
+# Zsh configuration
+# -----------------
+
+#
+# History
+#
+
+# Remove older command from the history if a duplicate is to be added.
+setopt HIST_IGNORE_ALL_DUPS
+
+#
+# Input/output
+#
+
+# Set editor default keymap to emacs (`-e`) or vi (`-v`)
+bindkey -e
+
+# Prompt for spelling correction of commands.
+#setopt CORRECT
+
+# Customize spelling correction prompt.
+#SPROMPT='zsh: correct %F{red}%R%f to %F{green}%r%f [nyae]? '
+
+# Remove path separator from WORDCHARS.
+WORDCHARS=${WORDCHARS//[\/]}
+
+# --------------------
+# Module configuration
+# --------------------
+
+#
+# git
+#
+
+# Set a custom prefix for the generated aliases. The default prefix is 'G'.
+#zstyle ':zim:git' aliases-prefix 'g'
+
+#
+# input
+#
+
+# Append `../` to your input for each `.` you type after an initial `..`
+#zstyle ':zim:input' double-dot-expand yes
+
+#
+# termtitle
+#
+
+# Set a custom terminal title format using prompt expansion escape sequences.
+# See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
+# If none is provided, the default '%n@%m: %~' is used.
+#zstyle ':zim:termtitle' format '%1~'
+
+#
+# zsh-autosuggestions
+#
+
+# Disable automatic widget re-binding on each precmd. This can be set when
+# zsh-users/zsh-autosuggestions is the last module in your ~/.zimrc.
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+# Customize the style that the suggestions are shown with.
+# See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
+#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+
+#
+# zsh-syntax-highlighting
+#
+
+# Set what highlighters will be used.
+# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters.md
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
+
+# Customize the main highlighter styles.
+# See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
+#typeset -A ZSH_HIGHLIGHT_STYLES
+#ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
+
+# ------------------
+# Initialize modules
+# ------------------
+
+ZIM_HOME=${ZDOTDIR:-${HOME}}/.zim
+# Download zimfw plugin manager if missing.
+if [[ ! -e ${ZIM_HOME}/zimfw.zsh ]]; then
+  if (( ${+commands[curl]} )); then
+    curl -fsSL --create-dirs -o ${ZIM_HOME}/zimfw.zsh \
+        https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+  else
+    mkdir -p ${ZIM_HOME} && wget -nv -O ${ZIM_HOME}/zimfw.zsh \
+        https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh
+  fi
+fi
+# Install missing modules, and update ${ZIM_HOME}/init.zsh if missing or outdated.
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+  source ${ZIM_HOME}/zimfw.zsh init
+fi
+# Initialize modules.
+source ${ZIM_HOME}/init.zsh
+# }}} End configuration added by Zim Framework install
+
+setopt histignorealldups sharehistory
+
+# Use emacs keybindings even if our EDITOR is set to vi
+bindkey -e
+
+# Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
+HISTSIZE=1000
+SAVEHIST=1000
+HISTFILE=~/.zsh_history
+
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' completer _expand _complete _correct _approximate
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' menu select=2
+eval "$(dircolors -b)"
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
+zstyle ':completion:*' menu select=long
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' use-compctl false
+zstyle ':completion:*' verbose true
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
+
+prompt-length() {
+  emulate -L zsh -o extendedglob
+  local str="$1" cols=${2:-$COLUMNS}
+
+  # Expand prompt escapes first (%F, %B, etc.)
+  str=${(%):-$str}
+
+  # Remove ANSI CSI (ESC [ ...), OSC (ESC ] ... BEL/ESC \), and DCS (ESC P ... ESC \)
+  str=${str//$'\e'(\[[0-9;]#[@-~]|\][^\a\\]#(\a|\\)|P[^\a\\]#\\)/}
+
+  echo ${#str}
+}
+
+
+# export PATH="/home/boarcoder/.local/share/mise/shims:$PATH"
+# Lazy-load nvm in interactive shells (eager-loaded in ~/.zprofile for non-interactive/MCP).
+# This saves ~500ms on shell startup; nvm/node/npm/npx load on first use.
+export NVM_DIR="$HOME/.nvm"
+_nvm_lazy_load() {
+  unset -f nvm node npm npx 2>/dev/null
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+}
+nvm()  { _nvm_lazy_load; nvm  "$@"; }
+node() { _nvm_lazy_load; node "$@"; }
+npm()  { _nvm_lazy_load; npm  "$@"; }
+npx()  { _nvm_lazy_load; npx  "$@"; }
+
+
+. "$HOME/.local/bin/env"
+
+# Path to Windows Git (for adding safe.directory entries visible to Windows tools)
+GIT_WINDOWS="/mnt/c/Program Files/Git/cmd/git.exe"
+
+# Mark a repo as safe for Windows Git, with a colored confirmation prompt.
+safe_win() {
+  local repo="$1"
+  if [[ -z "$repo" ]]; then
+    echo "Usage: safe_win /path/to/repo"
+    return 1
+  fi
+
+  local win_path
+  win_path="$(wslpath -w -a "$repo")"
+
+  # Check if already marked safe
+  if "$GIT_WINDOWS" config --global --get-all safe.directory 2>/dev/null | grep -Fxq "$win_path"; then
+    print -r -- "✔ Already safe in Windows Git: $win_path"
+    return 0
+  fi
+
+  # ncurses-style box with pink background and proper width
+  local bold reset fg_grey bg_pink
+  bold="$(tput bold 2>/dev/null || echo $'\e[1m')"
+  reset="$(tput sgr0 2>/dev/null || echo $'\e[0m')"
+  fg_grey="$(tput setaf 7 2>/dev/null || echo $'\e[37m')"
+  bg_pink="$(tput setab 5 2>/dev/null || echo $'\e[45m')"
+
+  local title="${fg_grey}${bold}Mark as safe.directory for Windows Git?"
+  local buttons="[Y] yes     [N] no"
+  local pad=2
+
+  local max_len=$(prompt-length "$title")
+  # $title = "${fg_grey}${bold}Mark as safe.directory for Windows Git?${reset}"
+  local tlen=$(prompt-length "$win_path"); (( tlen > max_len )) && max_len=$tlen
+  tlen=$(prompt-length "$buttons"); (( tlen > max_len )) && max_len=$tlen
+
+  local content_width=$(($max_len + pad))
+  local border
+  border=$(printf '%*s' "$content_width" '' | tr ' ' '-')
+
+  _line() {
+    local text="$1"
+    # inner width accounts for the leading/trailing space in the format string
+    local inner=$((content_width - 2))
+    local vislen=$(prompt-length "$text")
+    if (( vislen > inner )); then
+      text="${text:0:$inner}"
+      vislen=$inner
+    fi
+    local pad_spaces=$((inner - vislen))
+    # print text (may contain color codes) then pad separately so ANSI bytes don't skew width
+    printf "%s│ %s%s%*s │%s\n" "$bg_pink$bold" "$text" "$reset$bg_pink$bold" $pad_spaces "" "$reset"
+  }
+
+  printf "%s┌%s┐%s\n" "$bg_pink$bold" "$border" "$reset"
+  _line "$title"
+  _line "$win_path"
+  _line "$buttons"
+  printf "%s└%s┘%s\n" "$bg_pink$bold" "$border" "$reset"
+  printf "> "
+  read -r reply
+  if [[ "$reply" =~ ^[Yy]$ ]]; then
+    "$GIT_WINDOWS" config --global --add safe.directory "$win_path" && \
+      print -r -- "${green}Added safe.directory:${reset} $win_path"
+  else
+    print -r -- "${red}Skipped.${reset}"
+  fi
+}
+# fix unc paths not supported with cmd
+fork() {
+  local target="${1:-.}"
+  local abs_path; abs_path="$(realpath "$target")"
+  safe_win "$abs_path"
+
+  local win_path; win_path="$(wslpath -w -a "$abs_path")"
+  # Launch Fork via PowerShell with a drive-backed working directory (avoids UNC warnings)
+  /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe \
+    -NoLogo -NoProfile -Command "Set-Location \$env:SystemDrive; \$fork=\"\$env:LOCALAPPDATA\\Fork\\current\\Fork.exe\"; & \$fork \"${win_path}\""
+}
+
+# alias fork='/mnt/c/Windows/System32/cmd.exe /c "%USERPROFILE%\\AppData\Local\Fork\Fork.exe "$(wslpath -w -a .)'
+
+# eval "$(~/.local/bin/mise activate zsh)"
+alias l="exa \
+--long --header --modified --no-user \
+--icons --group-directories-first"
+alias ls="exa --icons --grid --classify --colour=auto --sort=type --group-directories-first --header --modified --created --binary --group"
+alias g="cd ~/documents/github; l"
+
+
+eval "$(starship init zsh)"
+
+# opencode
+export PATH=/home/boarcoder/.opencode/bin:$PATH
+setopt interactive_comments
