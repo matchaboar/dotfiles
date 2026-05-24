@@ -13,7 +13,8 @@
 
 # Remove older command from the history if a duplicate is to be added.
 setopt HIST_IGNORE_ALL_DUPS
-setopt HIST_IGNORE_SPACE
+setopt interactive_comments
+
 
 #
 # Input/output
@@ -47,7 +48,7 @@ WORDCHARS=${WORDCHARS//[\/]}
 #
 
 # Append `../` to your input for each `.` you type after an initial `..`
-#zstyle ':zim:input' double-dot-expand yes
+zstyle ':zim:input' double-dot-expand yes
 
 #
 # termtitle
@@ -56,7 +57,7 @@ WORDCHARS=${WORDCHARS//[\/]}
 # Set a custom terminal title format using prompt expansion escape sequences.
 # See http://zsh.sourceforge.net/Doc/Release/Prompt-Expansion.html#Simple-Prompt-Escapes
 # If none is provided, the default '%n@%m: %~' is used.
-#zstyle ':zim:termtitle' format '%1~'
+zstyle ':zim:termtitle' format '%1~'
 
 #
 # zsh-autosuggestions
@@ -68,7 +69,7 @@ ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 
 # Customize the style that the suggestions are shown with.
 # See https://github.com/zsh-users/zsh-autosuggestions/blob/master/README.md#suggestion-highlight-style
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
 
 #
 # zsh-syntax-highlighting
@@ -80,8 +81,8 @@ ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
 # Customize the main highlighter styles.
 # See https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/docs/highlighters/main.md#how-to-tweak-it
-#typeset -A ZSH_HIGHLIGHT_STYLES
-#ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
+typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[comment]='fg=242'
 
 # ------------------
 # Initialize modules
@@ -106,7 +107,12 @@ fi
 source ${ZIM_HOME}/init.zsh
 # }}} End configuration added by Zim Framework install
 
-setopt histignorealldups sharehistory
+setopt histignorealldups
+setopt sharehistory
+setopt hist_ignore_space      # remove command line from history list when first character is a space
+setopt hist_reduce_blanks     # remove superfluous blanks from history items
+setopt histignorespace        # remove commands from the history when the first character is a space
+
 
 # Use emacs keybindings even if our EDITOR is set to vi
 bindkey -e
@@ -115,23 +121,6 @@ bindkey -e
 HISTSIZE=1000
 SAVEHIST=1000
 HISTFILE=~/.zsh_history
-
-zstyle ':completion:*' auto-description 'specify: %d'
-zstyle ':completion:*' completer _expand _complete _correct _approximate
-zstyle ':completion:*' format 'Completing %d'
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*' menu select=2
-eval "$(dircolors -b)"
-zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*' list-colors ''
-zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
-zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
-zstyle ':completion:*' menu select=long
-zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
-zstyle ':completion:*' use-compctl false
-zstyle ':completion:*' verbose true
-zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
-zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 prompt-length() {
   emulate -L zsh -o extendedglob
@@ -160,9 +149,6 @@ nvm()  { _nvm_lazy_load; nvm  "$@"; }
 node() { _nvm_lazy_load; node "$@"; }
 npm()  { _nvm_lazy_load; npm  "$@"; }
 npx()  { _nvm_lazy_load; npx  "$@"; }
-
-
-. "$HOME/.local/bin/env"
 
 # Path to Windows Git (for adding safe.directory entries visible to Windows tools)
 GIT_WINDOWS="/mnt/c/Program Files/Git/cmd/git.exe"
@@ -244,18 +230,14 @@ fork() {
     -NoLogo -NoProfile -Command "Set-Location \$env:SystemDrive; \$fork=\"\$env:LOCALAPPDATA\\Fork\\current\\Fork.exe\"; & \$fork \"${win_path}\""
 }
 
-# alias fork='/mnt/c/Windows/System32/cmd.exe /c "%USERPROFILE%\\AppData\Local\Fork\Fork.exe "$(wslpath -w -a .)'
 
-# eval "$(~/.local/bin/mise activate zsh)"
 alias l="exa \
 --long --header --modified --no-user \
 --icons --group-directories-first"
 alias ls="exa --icons --grid --classify --colour=auto --sort=type --group-directories-first --header --modified --created --binary --group"
 alias g="cd ~/documents/github; l"
 
-
+# Shims are activated in ~/.zprofile; the full `mise activate zsh` installs a
+# precmd hook that costs ~150ms per prompt, so we skip it here.
+# eval "$(~/.local/bin/mise activate zsh)"
 eval "$(starship init zsh)"
-
-# opencode
-export PATH=/home/boarcoder/.opencode/bin:$PATH
-setopt interactive_comments
